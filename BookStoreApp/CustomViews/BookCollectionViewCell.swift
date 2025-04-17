@@ -12,15 +12,20 @@ class BookCollectionViewCell: UICollectionViewCell {
 //    MARK: UIElements
     private let bookImage: UIImageView = {
         $0.translatesAutoresizingMaskIntoConstraints = false
+        $0.layer.cornerRadius = 12
+        $0.clipsToBounds = true
+        $0.contentMode = .scaleAspectFill
         return $0
     }(UIImageView())
     private let bookNameLabel: UILabel = {
         $0.translatesAutoresizingMaskIntoConstraints = false
+        $0.textColor = .white
+        $0.font = .systemFont(ofSize: 16, weight: .semibold)
         return $0
     }(UILabel())
     
 //    MARK: Properties
-    let identifier = "BookCell"
+    static let identifier = "BookCell"
     
 //    MARK: Initialization
     override init(frame: CGRect) {
@@ -42,8 +47,9 @@ class BookCollectionViewCell: UICollectionViewCell {
 //MARK: - SetupUI
 private extension BookCollectionViewCell {
     func setupUI() {
-        addSubview(bookImage)
-        addSubview(bookNameLabel)
+        contentView.addSubview(bookImage)
+        contentView.addSubview(bookNameLabel)
+        setupLayout()
     }
 }
 
@@ -56,7 +62,7 @@ private extension BookCollectionViewCell {
             bookImage.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             bookImage.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.7),
             
-            bookNameLabel.topAnchor.constraint(equalTo: bookImage.bottomAnchor),
+            bookNameLabel.topAnchor.constraint(equalTo: bookImage.bottomAnchor, constant: 10),
             bookNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bookNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         ])
