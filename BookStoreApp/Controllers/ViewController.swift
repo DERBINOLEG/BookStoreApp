@@ -31,6 +31,11 @@ private extension ViewController {
             BookCollectionViewCell.self,
             forCellWithReuseIdentifier: BookCollectionViewCell.identifier
         )
+        collectionView.register(
+            SectionHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: SectionHeaderView.reuseIdentifier
+        )
         collectionView.dataSource = self
         collectionView.backgroundColor = .black
         view.addSubview(collectionView)
@@ -44,8 +49,13 @@ private extension ViewController {
     func createLayout() -> UICollectionViewLayout {
         
         let item = createLayoutItem(width: 0.5, height: 1)
+        
         let group = createLayoutGroup(width: 1.2, height: 200, subItems: [item])
+        
+        let header = createLayoutHeader(width: 1, height: 50)
+        
         let section = NSCollectionLayoutSection(group: group)
+        section.boundarySupplementaryItems = [header]
         section.orthogonalScrollingBehavior = .continuous
         
         return UICollectionViewCompositionalLayout(section: section)
@@ -93,6 +103,25 @@ private extension ViewController {
         return group
     }
     
+    func createLayoutHeader(width: Double, height: Double) -> NSCollectionLayoutBoundarySupplementaryItem {
+        let headerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(width),
+            heightDimension: .absolute(height)
+        )
+        let header = NSCollectionLayoutBoundarySupplementaryItem.init(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+        header.contentInsets = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: 10,
+            bottom: 0,
+            trailing: 0
+        )
+        return header
+    }
+    
 }
 
 //MARK: - UICollectionViewDataSource
@@ -119,6 +148,21 @@ extension ViewController: UICollectionViewDataSource {
         let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
         cell.configure(imageName: book.image, bookName: book.title)
         return cell
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        viewForSupplementaryElementOfKind kind: String,
+        at indexPath: IndexPath
+    ) -> UICollectionReusableView {
+        let booksType = manager.getBookTypes()[indexPath.section].type
+        guard let header = collectionView.dequeueReusableSupplementaryView(
+            ofKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: SectionHeaderView.reuseIdentifier,
+            for: indexPath
+        ) as? SectionHeaderView else { return UICollectionReusableView() }
+        header.configure(labelText: booksType)
+        return header
     }
 }
 
