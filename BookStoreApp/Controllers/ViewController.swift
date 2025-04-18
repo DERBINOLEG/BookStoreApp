@@ -36,6 +36,11 @@ private extension ViewController {
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: SectionHeaderView.reuseIdentifier
         )
+        collectionView.register(
+            BadgeNewView.self,
+            forSupplementaryViewOfKind: ElementKind.badge,
+            withReuseIdentifier: BadgeNewView.reuseIdentifier
+        )
         collectionView.dataSource = self
         collectionView.backgroundColor = .black
         view.addSubview(collectionView)
@@ -48,7 +53,9 @@ private extension ViewController {
     
     func createLayout() -> UICollectionViewLayout {
         
-        let item = createLayoutItem(width: 0.5, height: 1)
+        let badgeNew = createSupplementaryItem(width: 0.5, height: 20)
+        let item = createLayoutItem(width: 0.5, height: 1, supplementaryItems: [badgeNew])
+        
         
         let group = createLayoutGroup(width: 1.2, height: 200, subItems: [item])
         
@@ -72,14 +79,18 @@ private extension ViewController {
         ])
     }
     
-    func createLayoutItem(width: Double, height: Double) -> NSCollectionLayoutItem {
+    func createLayoutItem(
+        width: Double,
+        height: Double,
+        supplementaryItems: [NSCollectionLayoutSupplementaryItem]
+    ) -> NSCollectionLayoutItem {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(width),
             heightDimension: .fractionalHeight(height)
         )
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let item = NSCollectionLayoutItem(layoutSize: itemSize, supplementaryItems: supplementaryItems )
         item.contentInsets = NSDirectionalEdgeInsets(
-            top: 5,
+            top: 20,
             leading: 10,
             bottom: 5,
             trailing: 10
@@ -122,6 +133,23 @@ private extension ViewController {
         return header
     }
     
+    func createSupplementaryItem(width: Double, height: Double) -> NSCollectionLayoutSupplementaryItem {
+        let supplementaryItemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(width),
+            heightDimension: .absolute(height)
+        )
+        let constraints = NSCollectionLayoutAnchor(
+            edges: [.top, .leading],
+            absoluteOffset: CGPoint(x: 0, y: -20)
+        )
+        let supplementaryItem = NSCollectionLayoutSupplementaryItem.init(
+            layoutSize: supplementaryItemSize,
+            elementKind: ElementKind.badge,
+            containerAnchor: constraints
+        )
+        return supplementaryItem
+    }
+    
 }
 
 //MARK: - UICollectionViewDataSource
@@ -156,13 +184,33 @@ extension ViewController: UICollectionViewDataSource {
         at indexPath: IndexPath
     ) -> UICollectionReusableView {
         let booksType = manager.getBookTypes()[indexPath.section].type
-        guard let header = collectionView.dequeueReusableSupplementaryView(
-            ofKind: UICollectionView.elementKindSectionHeader,
-            withReuseIdentifier: SectionHeaderView.reuseIdentifier,
-            for: indexPath
-        ) as? SectionHeaderView else { return UICollectionReusableView() }
-        header.configure(labelText: booksType)
-        return header
+        if kind == UICollectionView.elementKindSectionHeader {
+            guard let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: SectionHeaderView.reuseIdentifier,
+                for: indexPath
+            ) as? SectionHeaderView else { return UICollectionReusableView() }
+            header.configure(labelText: booksType)
+            return header
+        } else if kind == ElementKind.badge {
+            if indexPath.section == 1 {
+                guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: BadgeNewView.reuseIdentifier,
+                    for: indexPath
+                ) as? BadgeNewView else { return UICollectionReusableView() }
+                return badgeNew
+            } else {
+                guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: BadgeNewView.reuseIdentifier,
+                    for: indexPath
+                ) as? BadgeNewView else { return UICollectionReusableView() }
+                badgeNew.isHidden = true
+                return badgeNew
+            }
+        }
+        return UICollectionReusableView()
     }
 }
 
