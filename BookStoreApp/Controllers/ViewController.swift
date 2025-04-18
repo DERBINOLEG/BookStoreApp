@@ -42,27 +42,9 @@ private extension ViewController {
 private extension ViewController {
     
     func createLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(0.5),
-            heightDimension: .fractionalHeight(1)
-        )
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(
-            top: 5,
-            leading: 10,
-            bottom: 5,
-            trailing: 10
-        )
         
-        let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.2),
-            heightDimension: .absolute(200)
-        )
-        let group = NSCollectionLayoutGroup.horizontal(
-            layoutSize: groupSize,
-            subitems: [item]
-        )
-
+        let item = createLayoutItem(width: 0.5, height: 1)
+        let group = createLayoutGroup(width: 1.2, height: 200, subItems: [item])
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .continuous
         
@@ -78,6 +60,37 @@ private extension ViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
+    }
+    
+    func createLayoutItem(width: Double, height: Double) -> NSCollectionLayoutItem {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(width),
+            heightDimension: .fractionalHeight(height)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(
+            top: 5,
+            leading: 10,
+            bottom: 5,
+            trailing: 10
+        )
+        return item
+    }
+    
+    func createLayoutGroup(
+        width: Double,
+        height: Double,
+        subItems: [NSCollectionLayoutItem]
+    ) -> NSCollectionLayoutGroup {
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(width),
+            heightDimension: .absolute(height)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: groupSize,
+            subitems: subItems
+        )
+        return group
     }
     
 }
