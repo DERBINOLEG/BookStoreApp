@@ -52,20 +52,15 @@ private extension ViewController {
 private extension ViewController {
     
     func createLayout() -> UICollectionViewLayout {
-        
-        let badgeNew = createSupplementaryItem(width: 0.5, height: 20)
-        let item = createLayoutItem(width: 0.5, height: 1, supplementaryItems: [badgeNew])
-        
-        
-        let group = createLayoutGroup(width: 1.2, height: 200, subItems: [item])
-        
-        let header = createLayoutHeader(width: 1, height: 50)
-        
-        let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [header]
-        section.orthogonalScrollingBehavior = .continuous
-        
-        return UICollectionViewCompositionalLayout(section: section)
+        return UICollectionViewCompositionalLayout { sectionIndex, _ in
+            if sectionIndex == 0 {
+                return self.createTopSection()
+            } else if sectionIndex == 1 {
+                return self.createMiddleSection()
+            } else {
+                return self.createBottomSection()
+            }
+        }
     }
     
     func setupLayout() {
@@ -85,8 +80,8 @@ private extension ViewController {
         supplementaryItems: [NSCollectionLayoutSupplementaryItem]
     ) -> NSCollectionLayoutItem {
         let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(width),
-            heightDimension: .fractionalHeight(height)
+            widthDimension: .absolute(width),
+            heightDimension: .absolute(height)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize, supplementaryItems: supplementaryItems )
         item.contentInsets = NSDirectionalEdgeInsets(
@@ -104,8 +99,8 @@ private extension ViewController {
         subItems: [NSCollectionLayoutItem]
     ) -> NSCollectionLayoutGroup {
         let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(width),
-            heightDimension: .absolute(height)
+            widthDimension: .estimated(width),
+            heightDimension: .estimated(height)
         )
         let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: groupSize,
@@ -150,12 +145,49 @@ private extension ViewController {
         return supplementaryItem
     }
     
+    func createTopSection() -> NSCollectionLayoutSection {
+        let item = createLayoutItem(width: 120, height: 120, supplementaryItems: [])
+        let group = createLayoutGroup(width: 1, height: 1, subItems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .continuous
+        section.boundarySupplementaryItems = [createLayoutHeader(width: 1, height: 50)]
+        return section
+    }
+    
+    func createMiddleSection() -> NSCollectionLayoutSection {
+        let badgeNew = createSupplementaryItem(width: 0.5, height: 20)
+        let item = createLayoutItem(width: 150, height: 250, supplementaryItems: [badgeNew])
+        let group = createLayoutGroup(width: 1, height: 1, subItems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .continuous
+        section.boundarySupplementaryItems = [createLayoutHeader(width: 1, height: 50)]
+        return section
+    }
+    
+    func createBottomSection() -> NSCollectionLayoutSection {
+        let badgeNew = createSupplementaryItem(width: 0.5, height: 20)
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize, supplementaryItems: [badgeNew])
+        
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(0.6)
+        )
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.boundarySupplementaryItems = [createLayoutHeader(width: 1, height: 50)]
+        return section
+    }
+    
 }
 
 //MARK: - UICollectionViewDataSource
 extension ViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        manager.getBookTypes().count
+        3
     }
     
     func collectionView(
@@ -175,6 +207,12 @@ extension ViewController: UICollectionViewDataSource {
         ) as? BookCollectionViewCell else { return BookCollectionViewCell() }
         let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
         cell.configure(imageName: book.image, bookName: book.title)
+        if indexPath.section == 0 {
+            cell.layer.cornerRadius = cell.frame.width / 2
+            cell.clipsToBounds = true
+        } else {
+            cell.clipsToBounds = false
+        }
         return cell
     }
     
@@ -193,22 +231,14 @@ extension ViewController: UICollectionViewDataSource {
             header.configure(labelText: booksType)
             return header
         } else if kind == ElementKind.badge {
-            if indexPath.section == 1 {
-                guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
-                    ofKind: kind,
-                    withReuseIdentifier: BadgeNewView.reuseIdentifier,
-                    for: indexPath
-                ) as? BadgeNewView else { return UICollectionReusableView() }
-                return badgeNew
-            } else {
-                guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
-                    ofKind: kind,
-                    withReuseIdentifier: BadgeNewView.reuseIdentifier,
-                    for: indexPath
-                ) as? BadgeNewView else { return UICollectionReusableView() }
-                badgeNew.isHidden = true
-                return badgeNew
-            }
+            guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: BadgeNewView.reuseIdentifier,
+                for: indexPath
+            ) as? BadgeNewView else { return UICollectionReusableView() }
+            let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
+            badgeNew.isHidden = book.isNew
+            return badgeNew
         }
         return UICollectionReusableView()
     }
