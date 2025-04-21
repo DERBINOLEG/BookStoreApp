@@ -187,7 +187,7 @@ private extension ViewController {
 //MARK: - UICollectionViewDataSource
 extension ViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        3
+        1
     }
     
     func collectionView(
@@ -207,12 +207,12 @@ extension ViewController: UICollectionViewDataSource {
         ) as? BookCollectionViewCell else { return BookCollectionViewCell() }
         let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
         cell.configure(imageName: book.image, bookName: book.title)
-        if indexPath.section == 0 {
-            cell.layer.cornerRadius = cell.frame.width / 2
-            cell.clipsToBounds = true
-        } else {
-            cell.clipsToBounds = false
-        }
+//        if indexPath.section == 0 {
+//            cell.layer.cornerRadius = cell.frame.width / 2
+//            cell.clipsToBounds = true
+//        } else {
+//            cell.clipsToBounds = false
+//        }
         return cell
     }
     
