@@ -14,11 +14,14 @@ class ViewController: UIViewController {
     
     //    MARK: Properties
     private let manager: IBookTypeManager = BookTypeManager()
+    private var diffableDataSource: UICollectionViewDiffableDataSource<BookType, Book>!
     
     //MARK: Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupDataSource()
+        applyInitialData()
     }
 }
 
@@ -41,7 +44,7 @@ private extension ViewController {
             forSupplementaryViewOfKind: ElementKind.badge,
             withReuseIdentifier: BadgeNewView.reuseIdentifier
         )
-        collectionView.dataSource = self
+//        collectionView.dataSource = self
         collectionView.backgroundColor = .black
         view.addSubview(collectionView)
         setupLayout()
@@ -184,63 +187,62 @@ private extension ViewController {
     
 }
 
-//MARK: - UICollectionViewDataSource
-extension ViewController: UICollectionViewDataSource {
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        1
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        numberOfItemsInSection section: Int
-    ) -> Int {
-        manager.getBookTypes()[section].books.count
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        cellForItemAt indexPath: IndexPath
-    ) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: BookCollectionViewCell.identifier,
-            for: indexPath
-        ) as? BookCollectionViewCell else { return BookCollectionViewCell() }
-        let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
-        cell.configure(imageName: book.image, bookName: book.title)
-//        if indexPath.section == 0 {
-//            cell.layer.cornerRadius = cell.frame.width / 2
-//            cell.clipsToBounds = true
-//        } else {
-//            cell.clipsToBounds = false
-//        }
-        return cell
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        viewForSupplementaryElementOfKind kind: String,
-        at indexPath: IndexPath
-    ) -> UICollectionReusableView {
-        let booksType = manager.getBookTypes()[indexPath.section].type
-        if kind == UICollectionView.elementKindSectionHeader {
-            guard let header = collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind,
-                withReuseIdentifier: SectionHeaderView.reuseIdentifier,
-                for: indexPath
-            ) as? SectionHeaderView else { return UICollectionReusableView() }
-            header.configure(labelText: booksType)
-            return header
-        } else if kind == ElementKind.badge {
-            guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
-                ofKind: kind,
-                withReuseIdentifier: BadgeNewView.reuseIdentifier,
-                for: indexPath
-            ) as? BadgeNewView else { return UICollectionReusableView() }
-            let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
-            badgeNew.isHidden = book.isNew
-            return badgeNew
+//MARK: - Setup DiffableDataSource
+private extension ViewController {
+    func setupDataSource() {
+        diffableDataSource = UICollectionViewDiffableDataSource(
+            collectionView: collectionView,
+            cellProvider: {
+                collectionView,
+                indexPath,
+                itemIdentifier in
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: BookCollectionViewCell.identifier,
+                    for: indexPath
+                ) as? BookCollectionViewCell else {return UICollectionViewCell()}
+                let book = self.manager.getBookTypes()[indexPath.section].books[indexPath.item]
+                cell.configure(imageName: book.image, bookName: book.title)
+                if indexPath.section == 0 {
+                            cell.layer.cornerRadius = cell.frame.width / 2
+                            cell.clipsToBounds = true
+                        } else {
+                            cell.clipsToBounds = false
+                        }
+                return cell
+        })
+        
+        diffableDataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
+            let booksType = self.manager.getBookTypes()[indexPath.section].type
+                    if kind == UICollectionView.elementKindSectionHeader {
+                        guard let header = collectionView.dequeueReusableSupplementaryView(
+                            ofKind: kind,
+                            withReuseIdentifier: SectionHeaderView.reuseIdentifier,
+                            for: indexPath
+                        ) as? SectionHeaderView else { return UICollectionReusableView() }
+                        header.configure(labelText: booksType)
+                        return header
+                    } else if kind == ElementKind.badge {
+                        guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
+                            ofKind: kind,
+                            withReuseIdentifier: BadgeNewView.reuseIdentifier,
+                            for: indexPath
+                        ) as? BadgeNewView else { return UICollectionReusableView() }
+                        let book = self.manager.getBookTypes()[indexPath.section].books[indexPath.item]
+                        badgeNew.isHidden = book.isNew
+                        return badgeNew
+                    }
+                    return UICollectionReusableView()
         }
-        return UICollectionReusableView()
+    }
+    
+    func applyInitialData() {
+        var snapshot = NSDiffableDataSourceSnapshot<BookType, Book>()
+        let book = manager.getBookTypes()
+        snapshot.appendSections(book)
+        for (sectionIndex, items) in book.enumerated() {
+            snapshot.appendItems(items.books, toSection: book[sectionIndex])
+        }
+        diffableDataSource.apply(snapshot, animatingDifferences: false)
     }
 }
 

@@ -37,12 +37,6 @@ class BookCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        layer.cornerRadius = frame.width / 2
-        clipsToBounds = true
-        super.layoutSubviews()
-    }
-    
 //    MARK: Methods
     func configure(imageName: String, bookName: String) {
         bookImage.image = UIImage(named: imageName)
