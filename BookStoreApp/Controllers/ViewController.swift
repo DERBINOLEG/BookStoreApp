@@ -44,10 +44,25 @@ private extension ViewController {
             forSupplementaryViewOfKind: ElementKind.badge,
             withReuseIdentifier: BadgeNewView.reuseIdentifier
         )
-//        collectionView.dataSource = self
         collectionView.backgroundColor = .black
+        collectionView.delegate = self
         view.addSubview(collectionView)
         setupLayout()
+        setupNavBar()
+    }
+    
+    func setupNavBar() {
+        navigationItem.title = "Books"
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .black
+        navigationController?.navigationBar.tintColor = .white
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white
+        ]
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
     }
 }
 
@@ -203,35 +218,35 @@ private extension ViewController {
                 let book = self.manager.getBookTypes()[indexPath.section].books[indexPath.item]
                 cell.configure(imageName: book.image, bookName: book.title)
                 if indexPath.section == 0 {
-                            cell.layer.cornerRadius = cell.frame.width / 2
-                            cell.clipsToBounds = true
-                        } else {
-                            cell.clipsToBounds = false
-                        }
+                    cell.layer.cornerRadius = cell.frame.width / 2
+                    cell.clipsToBounds = true
+                } else {
+                    cell.clipsToBounds = false
+                }
                 return cell
-        })
+            })
         
         diffableDataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
             let booksType = self.manager.getBookTypes()[indexPath.section].type
-                    if kind == UICollectionView.elementKindSectionHeader {
-                        guard let header = collectionView.dequeueReusableSupplementaryView(
-                            ofKind: kind,
-                            withReuseIdentifier: SectionHeaderView.reuseIdentifier,
-                            for: indexPath
-                        ) as? SectionHeaderView else { return UICollectionReusableView() }
-                        header.configure(labelText: booksType)
-                        return header
-                    } else if kind == ElementKind.badge {
-                        guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
-                            ofKind: kind,
-                            withReuseIdentifier: BadgeNewView.reuseIdentifier,
-                            for: indexPath
-                        ) as? BadgeNewView else { return UICollectionReusableView() }
-                        let book = self.manager.getBookTypes()[indexPath.section].books[indexPath.item]
-                        badgeNew.isHidden = book.isNew
-                        return badgeNew
-                    }
-                    return UICollectionReusableView()
+            if kind == UICollectionView.elementKindSectionHeader {
+                guard let header = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: SectionHeaderView.reuseIdentifier,
+                    for: indexPath
+                ) as? SectionHeaderView else { return UICollectionReusableView() }
+                header.configure(labelText: booksType)
+                return header
+            } else if kind == ElementKind.badge {
+                guard let badgeNew = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: BadgeNewView.reuseIdentifier,
+                    for: indexPath
+                ) as? BadgeNewView else { return UICollectionReusableView() }
+                let book = self.manager.getBookTypes()[indexPath.section].books[indexPath.item]
+                badgeNew.isHidden = book.isNew
+                return badgeNew
+            }
+            return UICollectionReusableView()
         }
     }
     
@@ -243,6 +258,14 @@ private extension ViewController {
             snapshot.appendItems(items.books, toSection: book[sectionIndex])
         }
         diffableDataSource.apply(snapshot, animatingDifferences: false)
+    }
+}
+
+extension ViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let book = manager.getBookTypes()[indexPath.section].books[indexPath.item]
+        let detailVC = DetailViewController(bookName: book.title, imageName: book.image)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
 
