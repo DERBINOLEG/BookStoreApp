@@ -28,6 +28,12 @@ extension BookTypeManager: IBookTypeManager {
                 Book(image: "book7", title: "Мотивация"),
                 Book(image: "book8", title: "Деградация", isNew: true),
                 Book(image: "book9", title: "Параллельные прямые")
+            ]),
+            BookType(type: "Новинки в подписке", books: [
+                Book(image: "book6", title: "Мы все сможем"),
+                Book(image: "book7", title: "Мотивация"),
+                Book(image: "book8", title: "Деградация", isNew: true),
+                Book(image: "book9", title: "Параллельные прямые")
             ])
         ]
     }
