@@ -10,51 +10,35 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
+    private let allTabBarItems = TabBarItem.allTabBarItems
     
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = UINavigationController(rootViewController: assembly())
+        let tabBarController = TabBarController()
+        tabBarController.viewControllers?.enumerated().forEach({ index, vc in
+            guard let navVC = vc as? UINavigationController else { return }
+            pushViewController(index: index, controller: navVC)
+        })
+        window?.rootViewController = UINavigationController(rootViewController: tabBarController)
         window?.makeKeyAndVisible()
     }
     
 }
 
 private extension SceneDelegate {
-    func assembly() -> UIViewController {
-        let tabBarController = UITabBarController()
-        tabBarController.tabBar.tintColor = .white
+    func pushViewController(index: Int, controller: UINavigationController) {
+        let manager = BookTypeManager()
         
-        
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .black
-        
-        tabBarController.tabBar.standardAppearance = appearance
-        tabBarController.tabBar.scrollEdgeAppearance = appearance
-        
-        let homeVC = UINavigationController(rootViewController: ViewController())
-        homeVC.tabBarItem.title = "Home"
-        homeVC.tabBarItem.image = UIImage(systemName: "house.fill")
-        
-        let searchVC = UINavigationController(rootViewController: MultipleSectionsViewController())
-        searchVC.tabBarItem.title = "Search"
-        searchVC.tabBarItem.image = UIImage(systemName: "magnifyingglass")
-        
-        tabBarController.viewControllers = [homeVC, searchVC]
-        
-        let navBarAppearance = UINavigationBarAppearance()
-        navBarAppearance.configureWithOpaqueBackground()
-        navBarAppearance.backgroundColor = .black
-        navBarAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        navBarAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-
-        let navigationBar = UINavigationBar.appearance()
-        navigationBar.standardAppearance = navBarAppearance
-        navigationBar.scrollEdgeAppearance = navBarAppearance
-        
-        return tabBarController
+        switch allTabBarItems[index] {
+        case .home:
+            let homeVC = ViewController(manager: manager)
+            controller.pushViewController(homeVC, animated: false)
+        case .search:
+            let searchVC = MultipleSectionsViewController()
+            controller.pushViewController(searchVC, animated: false)
+        }
     }
 }
 

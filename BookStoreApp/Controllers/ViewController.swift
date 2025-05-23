@@ -13,10 +13,20 @@ class ViewController: UIViewController {
     private var collectionView: UICollectionView!
     
     //    MARK: Properties
-    private let manager: IBookTypeManager = BookTypeManager()
+    private let manager: IBookTypeManager
     private var diffableDataSource: UICollectionViewDiffableDataSource<BookType, Book>!
     
     //MARK: Life Cycle
+    
+    init(manager: IBookTypeManager) {
+        self.manager = manager
+        super.init(nibName: nil, bundle: nil)
+    }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
